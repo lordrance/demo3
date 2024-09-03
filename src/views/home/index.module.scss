@@ -1,0 +1,19 @@
+.root {
+    :global {
+        .sider {
+            height: 100vh;
+            .head-logo {
+                margin: 10px auto;
+                margin-left: 15px;
+                transition: 0.3s all ease;
+            }
+            .ant-menu-item-selected {
+                background-image: url(../../assets/menu-bg.png) !important;
+                background-size: cover;
+                background-color: transparent;
+                color: white !important;
+                border-radius: 0;
+            }
+        }
+    }
+}

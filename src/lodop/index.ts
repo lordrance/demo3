@@ -1,0 +1,77 @@
+import type { Page, Template, Widget } from "@/interfaces";
+import { replacePattern, tableToHtml, textTohtml } from "@/utils";
+import cloneDeep from "lodash/cloneDeep";
+import getLodop from "./lib/LodopFuncs";
+
+const strCompanyName = "";
+const strLicense = "EE0887D00FCC7D29375A695F728489A6";
+const strLicenseA = "C94CEE276DB2187AE6B65D56B3FC2848";
+const strLicenseB = "";
+
+// lodop预览
+export const preview = (temp: Template, data?: any) => {
+	const lodop = createLodop(temp.page);
+	const items = cloneDeep(temp.widgets);
+	if (data !== null && data !== undefined) {
+		dataBind(items, data);
+	}
+	additems(lodop, items);
+	lodop.PREVIEW();
+};
+
+// 获取lodop实例
+const createLodop = (page: Page) => {
+	const lodop = getLodop();
+	lodop.SET_LICENSES(strCompanyName, strLicense, strLicenseA, strLicenseB);
+	lodop.PRINT_INITA(0, 0, page.width, page.height, page.name);
+	lodop.SET_PRINT_PAGESIZE(
+		1,
+		`${page.pageWidth}mm`,
+		`${page.pageHeight}mm`,
+		"",
+	);
+	return lodop;
+};
+
+// 数据绑定
+const dataBind = (items: Widget[], data: any) => {
+	const keys = Object.keys(data);
+	items.forEach((x) => {
+		switch (x.type) {
+			case "text":
+				if (x.isEdit) break;
+				for (let i = 0; i < keys.length; i++) {
+					const res = replacePattern(x.value, keys[i], data[keys[i]]);
+					if (res.replaced) {
+						x.value = res.result;
+						break;
+					}
+				}
+				break;
+			case "table":
+				if (x.tableName) x.value = data[x.tableName];
+				break;
+			default:
+				break;
+		}
+	});
+};
+
+// 添加组件到页面
+const additems = (lodop: any, items: Widget[]) => {
+	let html: string;
+	items.forEach((x) => {
+		switch (x.type) {
+			case "text":
+				html = textTohtml(x, x.style);
+				lodop.ADD_PRINT_HTM(x.top, x.left, x.width, x.height, html);
+				break;
+			case "table":
+				html = tableToHtml(x.style, x, x.value);
+				lodop.ADD_PRINT_HTM(x.top, x.left, x.width + 4, x.height, html);
+				break;
+			default:
+				break;
+		}
+	});
+};
